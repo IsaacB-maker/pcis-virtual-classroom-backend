@@ -1,0 +1,44 @@
+﻿# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Django local database and backups
+db.sqlite3
+db.sqlite3-*
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+
+# Uploaded media, student documents, and recordings
+media/
+
+# Logs
+*.log
+
+# Test and coverage files
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Ignore all SQLite database files and backups
+*.sqlite3*
+*.db*
+
