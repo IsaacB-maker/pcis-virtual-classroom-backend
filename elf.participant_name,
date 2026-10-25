@@ -1,0 +1,72 @@
+[1mdiff --git a/liveclass/consumers.py b/liveclass/consumers.py[m
+[1mindex 65ed421..21388b3 100644[m
+[1m--- a/liveclass/consumers.py[m
+[1m+++ b/liveclass/consumers.py[m
+[36m@@ -32,8 +32,8 @@[m [mclass ClassroomConsumer(AsyncWebsocketConsumer):[m
+ [m
+         await self.accept()[m
+ [m
+[31m-        if self.peer_id:[m
+[31m-            await self.announce_participant()[m
+[32m+[m[32m        # Wait for the join message before announcing the participant.[m
+[32m+[m[32m        # This ensures the latest name and role are used.[m
+ [m
+     async def announce_participant(self):[m
+         if not self.peer_id or self._announced:[m
+[36m@@ -45,7 +45,7 @@[m [mclass ClassroomConsumer(AsyncWebsocketConsumer):[m
+             self.room_group_name,[m
+             {[m
+                 "type": "peer_joined",[m
+[31m-                "peer_id": self.peer_id,[m
+[32m+[m[32m                "peer_id": str(self.peer_id),[m
+                 "name": self.participant_name,[m
+                 "role": self.participant_role,[m
+             },[m
+[36m@@ -57,7 +57,7 @@[m [mclass ClassroomConsumer(AsyncWebsocketConsumer):[m
+                 self.room_group_name,[m
+                 {[m
+                     "type": "peer_left",[m
+[31m-                    "peer_id": self.peer_id,[m
+[32m+[m[32m                    "peer_id": str(self.peer_id),[m
+                 },[m
+             )[m
+ [m
+[36m@@ -81,12 +81,13 @@[m [mclass ClassroomConsumer(AsyncWebsocketConsumer):[m
+             if supplied_peer_id:[m
+                 self.peer_id = str(supplied_peer_id)[m
+ [m
+[31m-            self.participant_name = data.get([m
+[31m-                "name", self.participant_name[m
+[31m-            )[m
+[31m-            self.participant_role = data.get([m
+[31m-                "role", self.participant_role[m
+[31m-            )[m
+[32m+[m[32m            supplied_name = data.get("name")[m
+[32m+[m[32m            if isinstance(supplied_name, str) and supplied_name.strip():[m
+[32m+[m[32m                self.participant_name = supplied_name.strip()[m
+[32m+[m
+[32m+[m[32m            supplied_role = data.get("role")[m
+[32m+[m[32m            if isinstance(supplied_role, str) and supplied_role.strip():[m
+[32m+[m[32m                self.participant_role = supplied_role.strip()[m
+ [m
+             await self.announce_participant()[m
+             return[m
+[36m@@ -148,9 +149,7 @@[m [mclass ClassroomConsumer(AsyncWebsocketConsumer):[m
+                     "name": self.participant_name,[m
+                     "role": self.participant_role,[m
+                     "camera_on": data.get("camera_on", True),[m
+[31m-                    "microphone_on": data.get([m
+[31m-                        "microphone_on", True[m
+[31m-                    ),[m
+[32m+[m[32m                    "microphone_on": data.get("microphone_on", True),[m
+                 },[m
+             )[m
+             return[m
+[36m@@ -179,7 +178,6 @@[m [mclass ClassroomConsumer(AsyncWebsocketConsumer):[m
+                 )[m
+ [m
+     async def chat_message(self, event):[m
+[31m-        # Send to every participant in this room, including the sender.[m
+         await self.send([m
+             text_data=json.dumps({[m
+                 "type": "chat-message",[m
