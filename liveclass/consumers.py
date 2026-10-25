@@ -32,8 +32,8 @@ class ClassroomConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
-        if self.peer_id:
-            await self.announce_participant()
+        # Wait for the join message before announcing the participant.
+        # This ensures the latest name and role are used.
 
     async def announce_participant(self):
         if not self.peer_id or self._announced:
@@ -45,7 +45,7 @@ class ClassroomConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 "type": "peer_joined",
-                "peer_id": self.peer_id,
+                "peer_id": str(self.peer_id),
                 "name": self.participant_name,
                 "role": self.participant_role,
             },
@@ -57,7 +57,7 @@ class ClassroomConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {
                     "type": "peer_left",
-                    "peer_id": self.peer_id,
+                    "peer_id": str(self.peer_id),
                 },
             )
 
@@ -81,12 +81,13 @@ class ClassroomConsumer(AsyncWebsocketConsumer):
             if supplied_peer_id:
                 self.peer_id = str(supplied_peer_id)
 
-            self.participant_name = data.get(
-                "name", self.participant_name
-            )
-            self.participant_role = data.get(
-                "role", self.participant_role
-            )
+            supplied_name = data.get("name")
+            if isinstance(supplied_name, str) and supplied_name.strip():
+                self.participant_name = supplied_name.strip()
+
+            supplied_role = data.get("role")
+            if isinstance(supplied_role, str) and supplied_role.strip():
+                self.participant_role = supplied_role.strip()
 
             await self.announce_participant()
             return
@@ -148,9 +149,7 @@ class ClassroomConsumer(AsyncWebsocketConsumer):
                     "name": self.participant_name,
                     "role": self.participant_role,
                     "camera_on": data.get("camera_on", True),
-                    "microphone_on": data.get(
-                        "microphone_on", True
-                    ),
+                    "microphone_on": data.get("microphone_on", True),
                 },
             )
             return
@@ -179,7 +178,6 @@ class ClassroomConsumer(AsyncWebsocketConsumer):
                 )
 
     async def chat_message(self, event):
-        # Send to every participant in this room, including the sender.
         await self.send(
             text_data=json.dumps({
                 "type": "chat-message",
