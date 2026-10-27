@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "channels",
     "liveclass",
     "student_management",
+    "administration",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
